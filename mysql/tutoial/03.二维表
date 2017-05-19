@@ -1,0 +1,150 @@
+二维表相关
+
+基本:
+SHOW DATABASES; 查看所有数据库
+SELECT DATABASE();  查看正在操作的数据库
+USE test;   使用test数据库
+
+建表:
+   CREATE TABLE IF NOT EXISTS tb1(
+         name VARCHAR(20),
+         age  TINYINT unsigned,
+         salary FLOAT(8,2) unsigned
+         );
+查看表:
+   SHOW TABLES;
+   SHOW TABLES FROM mysql;   查看数据库中的表
+
+查看表结构:
+   DESC tb1;或者 show columns from tb1;
+   
+插入数据
+   INSERT INTO tb1 VALUES('Tom',23,778.7);
+   INSERT INTO tb1(name,salary) values('John',255.5);   只插入指定的列
+
+列出全部记录
+   SELECT * FROM tb1;
+
+
+自动编号auto_increment
+   (必须和主键组合使用,它依附于主键，但是主键不依赖它)，默认起始为1，每次增量为1.
+
+
+---
+约束
+
+表级约束和列级约束:
+  1. 表级约束只能在列定以后声明; 
+     列(字段)约束可以再定义时或者定义后声明
+  2. 表级约束用的很少
+  3. 所谓的check约束，基本不起作用
+
+
+设置字段为null和不为null
+   在建立表的时候, 在字段后面加上null或者not null就可以了，如果设置为字段为null,那么insert的时候就要插入null(或者自动插入null)
+
+
+   
+主键（primary key）
+   每张表只能有一个主键(可以是联合主键),主键保证记录的唯一性,主键字段自动设置not null.(当然也可以显示写出来)
+ 
+  示例：  (自增长的插入的时候可以不管,它会自动编号)
+   CREATE TABLE IF NOT EXISTS tb2(
+      id  SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      name varchar(30) not null
+       );
+   INSERT INTO tb2(name) values('Tom');
+   SELECT * FROM tb2;
+     
+
+唯一约束(UNIQUE KEY)
+  1. 也能保证记录的唯一性
+  2. 可以为null
+  3. 每张表可以存在多个唯一约束
+
+    CREATE TABLE IF NOT EXISTS tb3(
+         id SAMLLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+         name VARCHAR(20) NOT NULL UNIQUE KEY,
+         age TINYINT UNSIGNED
+       );
+  注意unique key可以简写称unique.
+
+默认值 DEFAULT
+   当插入记录时，没有明确为字段赋值，则自动赋予默认值。
+   
+   CREATE TABLE IF NOT EXISTS tb4（
+      id SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(20) NOT NULL UNIQUE,
+      age ENUM('1','2','3') DEFAULT '3'
+        );
+   INSERT INTO tb4(name) VALUES('Tom');
+   SELECT * FROM tb4;
+
+
+   
+外键约束(保证数据一致性或者完整性，实现一对一或者一对多关系)
+  1. 父表和子表必须使用相同的存储引擎，而且禁止使用临时表
+  2. 数据表的存储引擎只能是InnoDB (MyISAM不支持外键，我在练习级联删除的时候我说怎么弄都不行呢，原来必须是InnoDB)
+  3. 外键列和参照列必须具有相似的数据类型（字符长度可以不同，但是数字的长度或者有无符号必须相同）
+  4. 外键列和参照列必须创建索引(主键就相当于一种索引，然后外键列如果不存在，那么mysql自动为其创建索引)
+ 
+
+   示例:
+    create table provinces(
+      id smallint unsigned primary key auto_increment,
+      pname varchar(20) not null
+       );
+    show create table provinces;   可以看到默认的ENGINE
+    (此时如果建立外键，从参照provinces的id字段，那么外键的限制就应该是 smallint unsigned，否则一般会出错)
+
+    create table city(
+       id smallint unsigned primary key auto_increment,
+       name varchar(10) not null,
+       pid smallint unsigned,
+       foreign key(pid) references provinces(id)
+     );  
+   
+    show indexes from city \G;   可以看到mysql自动为表创建了索引pid
+                                  （mysql中的索引默认是b tree）
+   
+   
+   
+外键约束的参照操作:(和外键一起定义)
+   1.  cascade: 对父表的更新和删除操作将影响子表相应的行
+   2.  set null:  对父表的更新和删除行操作，将会让子表的外键字段设置为null (外键定义的时候不能是not null)
+   3.  restrict(或者是no action): 对父表的操作不会影响到子表的相应字段(子表拒绝做相应的修改)
+
+   1和3用的比较多(注意必须是InnoDB引擎)
+
+   举例：on delete cascade
+
+   create table if not exists cities(
+       id smallint unsigned primary key auto_increment,
+       name varchar(10) not null,
+       pid smallint unsigned,
+       foreign key(pid) references provinces(id) on delete cascade
+        );
+   insert into provinces(pname) values('hubei');
+   insert into cities(name,pid) values('wuhan',1);
+   delete from provinces where id = 1;
+   
+   此时发现citites里的数据也被删除了.
+   select * from citites;
+   
+
+约束汇总：(5种)
+      not null
+      primary key
+      unique key
+      default
+      foreign key
+
+
+关于存储引擎:
+    MySQL配置文件 my.ini文件
+      default-storage-engine=INNODB
+    或者 
+      default-storage-engine=MYISAM
+
+
+show engines;  可以查看当前mysql支持的存储引擎的信息

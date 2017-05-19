@@ -1,0 +1,55 @@
+基本操作:
+操作平台ubuntu16, mysql5.7
+
+1. 安装mysql5.7 in ubuntu16
+   略.
+
+2. 开启和关闭mysql
+
+   windows平台
+    net start MySQL
+    net stop MySQL
+   
+   linux平台
+    service mysql start
+    service mysql stop
+
+3. cmd中登录MySQL
+    mysql -uroot -p
+     之后提示输入密码
+   
+    exit 退出
+    mysql -P3306 -h127.0.0.1
+
+4.  修改提示符
+    在连接mysql的时候就修改 --prompt + 参数
+                              prompt + 参数
+    如果已经连接上了mysql那么就只需要 prompt + 参数 (注意 prompt和参数之间有空格)
+    例如: mysql -uroot -p --prompt \u  然后提示输入密码，输入正确后，提示符就变成了root
+
+    其他提示符还有 \D 完整日期;\d当前数据库;\h当前服务器名字;\u当前用户(可以连着多用，也可以自定义)
+
+5.  书写规范:
+      数据库的关键字，函数大写；
+      数据库名,表名,字段名小写。
+    演示命令:
+     SELECT VERSION();
+     SELECT NOW();
+     SELECT USER();
+     SHOW DATABASES;
+6.  其他命令演示
+
+    查看创建数据库时的语句:SHOW CREATE DATABASE mysql;    
+    创建数据库时指定字符集:
+           CREATE DATABASE IF NOT EXISTS merlin_test CHARACTER SET gbk;
+    更改数据库的字符集(ALTER DATABASE)
+           ALTER DATABASE merlin_test CHARACTER SET = utf8;
+    删除数据库
+           DROP DATABASE IF EXISTS merlin_test;
+
+	   
+   
+
+
+
+   
