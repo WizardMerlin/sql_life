@@ -1,0 +1,93 @@
+修改表结构:(列的增删、约束的增删)
+总是alter table table_name + alter/drop ...
+
+  1. 添加单列(add column column_definitions)
+     alter table tb1_name add [column] col_name column_definition [first|after col_name]
+     
+    示例:
+    create table if not exists user1(
+        id smallint(5) unsigned primary key auto_increment,
+        name varchar(10) not null,
+        pid smallint(5) unsigned,
+        foreign key(pid) references provinces(id) on delete cascade
+       );
+    //增加一个字段，但是不设置顺序
+    alter table user1 add age tinyint unsigned not null default 10;  
+    alter table user1 add pwd varchar(20) not null after name;
+   
+  补充: 添加多列
+    alter table tb_name add [column] col_name column_definition, ...;
+    (多列之间用逗号相隔开)
+ 
+ 2.  删除列(drop column_name)
+     alter table tb_name drop [column] col_name;
+     (一次性删除多列，用逗号隔开列名)
+
+ 3. 添加主键约束(add primary key(key_name))
+    alter table tb_name add [constraint [constraint_name]] primary key [index_type](col_name,...)
+     (这里索引类型可以是hash类型，也可以是btree类型)
+     
+    示例:
+      create table if not exists user2(
+          id smallint unsigned,
+          username varchar(20) not null,
+          pid smallint unsigned
+           );
+      alter table user2 add constraint pk_user2_id primary key(id);  //默认的索引类型是B树
+
+ 4. 添加唯一约束(add unique(column_name))
+      alter table tb_name add [constraint [contraint_name]] unique [index|key] [index_name] [index_type](col_name,...)
+      示例: (把上面的username变成unique的）,多个唯一约束字段之间用逗号隔开
+      alter table user2 add unique(username);
+   
+ 5. 添加外键约束(add foreign key(key_name) references table_name(another_key_anme))
+      alter table tb_name add [constraint [constraint_name]] foreign key [index_name](col_name) reference_definition
+      示例:  alter table user add foreign key(pid) references provinces(id);
+      
+ 6. 添加删除默认约束(alter colomen_name set/drop default)
+      alter table tb_name alter [column] col_name {set default literal | drop default}
+      示例:
+          alter table user alter age set default 15;
+          alter table user alter age drop default;
+
+ 7. 删除主键约束(drop primary key)
+     alter table tb_name drop primary key
+     示例: alter table user drop primary key;
+
+ 8. 删除唯一约束(drop index或者drop key)
+      alter table tb_name drop {index|key} index_name
+     示例:
+        show index from user \G;
+        alter table user drop index username;
+     注意:  删除约束 不是删除字段!
+
+ 9. 删除外键约束(做两项工作:1.删除外键约束drop foreign key; 2.删除索引drop index)
+      alter table tb_name drop foreign key constraint_name;  
+     (所以添加外键约束的时候最好自己去设定名字，当然系统也会帮助我们设定的)
+      示例:
+         (首先找到约束的名字,此处外键字段是pid)
+         show create table user;  //这样可以看到约束的名字 比如说叫做: user_fk_1
+         alter table user drop foreign key user_fk_1;
+	 
+         还没完,如果用 desc user 会发现外键的字段上面还是有MUL
+         (mysql创建的时候还用到了key,即自动为外键创建了索引，所以删除约束的时候还要删除索引)
+         show create table user;  //发现 pid还有key约束
+         alter table user drop index pid;
+         desc user;   //发现没有MUL了
+
+ 10. 修改列定义(modify)
+       alter table tb_name MODIFY [column] col_name column_definition [first|after col_name]
+       示例:
+         alter table user modify age tinyint unsigned not null after name;
+         alter table user modify age smallint unsigned not null;   // 将该字段的类型向上提升
+
+ 11. 更改列名称(change)
+       alter table tb_name CHANGE [column] old_col_name new_col_name column_definition [first|after col_name]
+       示例:
+         alter table user change pid new_pid unsigned first;
+
+ 12. 数据表更名(表名一般不要修改，因为可能会影响到引用该表的视图或者存储过程)
+       方法1:  alter table tb_name rename [to|as] new_tb_name;
+       方法2:  rename table tb_name to new_tb_name;(可以一次性修改多个表名)
+     
+     示例: alter table user rename user1; 
