@@ -1,0 +1,141 @@
+详细复习 CRUD
+
+1. Insert
+     方法一: insert [into] tb_name[(col_name,...)]{values|value}({expr|default}),(),....
+     方法二: insert [into] tb_name set col_name={expr|default},...
+     方法三: insert [into] tb_name [(col_name,...)] select ...   将查询到的结果插入到指定的数据库
+
+2. Update
+      update [low_priority][ignore] tb_name set col_name={expr|default}[,col_name2={expr2|default}]...[where where_condition]
+      
+3. Delete
+      单表删除: delete from tb_name [where where_condition]
+      多表删除: (比较麻烦--后面专门说)
+      
+4. SELECT
+      select select_expr[,select_expr...]
+           [
+              from tb_name
+              [WHERE where_condition]
+              [GROUP BY{col_name|position}[asc|desc],...]
+              [HAVING  where_condition]
+              [ORDER BY {col_name|expr|position}[asc|desc],...]
+              [LIMIT{[offset,]row_count|row_count OFFSET offset}]
+           ]
+
+     清除重复行可以使用distinct关键字, 修饰要查询的字段
+     where子句中的字符串和日期, 要用单引号引起来.
+
+实例如下:
+
+    create table users(
+         id smallint unsigned primary key auto_increment,
+         username varchar(20) not null,
+         password varchar(32) not null,
+         age tinyint unsigned not null default 10,
+         sex boolean
+            );
+     //这里只有sex可以为空
+     //auto_increment的字段,可以插入null或者default，让其采用自增值
+     insert into users values(null,'john','123',23,1),(default,'jimmy','123',3*7,1);
+
+     
+     //age字段默认是10,插入的时候也可以写default
+     insert into users values(default,'rose','123',default,2);
+
+      //采用第二种方式插入(可以用于子查询)----用的比较少
+      insert into users set username='ben',password='234';
+
+     //第三种方式（假如存在第2张表 test(id,username)）
+      insert into test(username) select username from users where age>20;
+     
+      //将所有的年龄都+5
+      update users set age=age+5;
+
+      update users set age=age-id,sex=0;
+      update users set age=age+10 where id%2=0;
+
+      //delete
+      delete from users where id =6;
+     (删除一条id最大的记录，下一跳记录auto_increment是在上一条记录的基础上进行增长的)
+
+     //select expr的意思是
+     select version();
+     select now();
+     select database();
+     select 2*7; //可以使用括号改变运算的优先级
+
+     可以使用一些常用函数:(具体的后面再说吧)
+     1. 字符串函数
+        例如 select CONCAT(name, location) from users; //相当于把字段结果连接起来了
+        LOWER(column...)等等
+
+     
+
+
+
+     //select_expr至少有一列，多列之间用逗号分隔，*表示所有列
+     //用[as] alias_name为要查询的表达式赋予别名,并且别名可以用于group by, order by或者having
+     select * from users;
+     select id,username from users;
+     select users.id,users.username from users;  //给字段加上表名
+     select id as userId, username as uname from users; //给字段起别名  (起别名，as可以省略，但是最好加上)
+
+
+
+     
+     //特别注意group by 和 having  
+     //group by更多是用于和聚合函数一起使用, 对查询出来的数据进行分组(多条数据统计, 然后按照一条数据输出)
+     //select后面的字段要么出现在group by中, 要么是聚合函数; 否则结果不正确(mysql这个上面有点儿问题)
+
+    //group by
+    select sex from users group by sex;   //以sex进行分组(如果数据库里sex的取值有2个，0和1，那么查询的结果也只有两条,只取每组的第一个)
+    select sex from users group by 1;   //以查询出来的第一个字段进行分组(尽量用字段名，不要用位置值)  
+
+   //group by后面的子句的字段可以不出现在查询中, having字句是对分组结果进行过滤()
+   //为啥用having,因为where子句中不能使用聚合函数; 所以分组的条件过滤, 只能使用having
+   //having只能用在group by后面, 对分组之后的记录, 进行条件限定
+    select sex from users group by sex having age>35;  //出现了错误 Unknown column 'age' in 'having clause'
+   --->应该写成 select sex,age from users group by sex having age>35;
+   --->聚合函数的情况: select sex from users group by sex having count(id)>=2;
+
+   没有group by时, 这样写是错的:
+   select sex, avg(age) from users;  //缺少group by  --- 按性别求其平均年龄
+
+   应该:
+   select sex, count(*) from users group by sex;  //每种性别的人数
+
+   也可以同时按照多个指标去写:    (按照性别和职位进行统计人数)
+   select sex, job, count(*) from users where age = '25' group by sex, job;
+
+   使用聚合函数可以不用group by
+
+
+
+   
+   // order by 对查询结果进行排序(默认升序)
+    select * from users order by id desc;
+    select * from users order by age,id desc;  //先按照age asc,然后在按照id desc
+
+
+   // limit 限制查询结果返回的数量(常常用于分页处理)
+    select * from users limit 2;   //返回2条数据
+    select * from users limit 0,2; //取索引为0和1的两条数据(即第一条/行和第二条/行)
+    (但是找到的不超过指定的数量---有可能满足要求的就很少)
+
+
+复习一下select查询语句:
+
+    SELECT selection_list  查询字段限定
+      FROM table_list  从哪里选取行
+      WHERE primary_constraint  查询限定
+      GROUP BY grouping_columns 按哪些列对结果进行分组
+      HAVING secondary_constraint 分组结果限定
+      ORDER BY sorting_columns  对结果排序
+      LIMIT offset_start, row_count  结果数量限定 
+
+
+
+
+
+

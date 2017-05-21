@@ -1,0 +1,61 @@
+MySQL常用的函数
+
+1.字符函数
+2.数值运算符与函数
+3.比较运算符与函数
+4.日期时间函数
+5.信息函数
+6.聚合函数
+7.加密函数
+--------------------------------------------
+1. 字符函数
+   CONCAT()    字符连接
+  示例: select concat('wizard','merlin');
+        select concat('wizard','-','merlin');
+        select concat(first_name,last_name) as fullname from test;  //从表中拿数据
+
+   CONCAT_WS()  使用指定的分隔符进行字符串连接
+  示例:
+        select concat_ws('|','A','B','C');
+        select concat_ws('-','wizard','merlin');
+
+   FORMAT()   数字格式化（返回字符型）
+  示例:
+        select format(123.321,2);  //保留两位小数
+   LOWER()    转换成小写字母
+   UPPER()    转化成大写字母
+  示例:   LOWER('Merlin');
+
+   LEFT()     获取左侧字符
+   RIGHT()    获取右侧字符
+  示例:  left('mysql',2);
+
+   LENGTH()  获取字符串长度   select length('my sql');   //6
+
+   LTRIM()   删除左边(前导)空格   select
+   RTRIM()   删除右边(后续)空格'
+   TRIM()    删除前导和后续空格
+ 示例说明:   trim()可以替代 ltrim()和rtrim()
+    select trim(leading '?' from '??mysql???'); 相当于 ltrim()
+    select trim(trailing '?' from '??mysql???'); 相当于 rtrim()
+    select trim(both '?' from '??mys????ql???');  前后的指定符号都会被清空,但是字符串中间不能被去掉
+--->  要去掉字符串中间的字符可以用 replace()
+    示例:   select replace('??my??sql???','?','');
+    注意:   select replace('??my??sql???','??','!');  //结果是:  !my!mysql!?
+
+
+    SUBSTRING()  字符串截取
+  示例:  select substring('mysql',1,2);  //结果是my
+         select substring('mysql',-1);  //从倒数第一位开始截获一个字符
+   
+    [NOT] LIKE   模式匹配   (%匹配任意多个字符，_匹配任意一个字符)
+         select 'mysql' like 'm%';  //如果找到匹配的，结果就是1
+      例如: test表中有一行记录、firstname tom  lastname smith
+        select * from test where firstname like '%o%';
+      如果记录中含有%怎么处理？  (写成%%%是行不通的)
+         例如: firstname tom%  lastname simth
+        select * from test where firstname like '%1%%' escape '1';
+     或者 select * from test where firstname like '%a%%' escape 'a';
+     
+
+    REPLACE()    字符串替换

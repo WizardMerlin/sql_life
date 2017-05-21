@@ -1,0 +1,20 @@
+多表删除
+DELETE tb_name[.*][,tb_name[.*]]...FROM table_references [where where_condition]
+(平常正规的删除是: delete from table_name where expression)
+  先看看哪些数据重复了:
+      select t.goods_id,t.goods_name from tdb_goods as t group by t.goods_name having count(t.goods_name)>1;  //goods_id为18、19的各重复一次
+     
+      select t1.goods_id as id1,t2.goods_id as id2
+          from  tdb_goods as t1
+          inner join
+             (select t.goods_id,t.goods_name from tdb_goods as t group by t.goods_name having count(t.goods_name)>1) as t2
+          on t1.goods_name = t2.goods_name;     //18和21重复,19和22重复
+   
+      //重复的，只保留id小的,所以把id偏大的两个查出来
+      select t1.goods_id as id1,t2.goods_id as id2
+          from  tdb_goods as t1
+          inner join
+             (select t.goods_id,t.goods_name from tdb_goods as t group by t.goods_name having count(t.goods_name)>1) as t2
+          on t1.goods_name = t2.goods_name
+          where t1.goods_id > t2.goods_id;
+(多表查询太麻烦了，所以查出来后，还是用delete from tb_name where condition)

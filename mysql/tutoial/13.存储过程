@@ -1,0 +1,116 @@
+存储过程
+
+普通的SQL语句执行过程如下:
+   SQL命令--> MySQL引擎 --- (语法分析) --->语法正确
+          --> 可识别命令 --- (执行)---> 执行结果 ---(返回)---> 客户端
+
+  存储过程存储在数据库中，它在执行的时候省略了语法分析这一步骤
+  (存储过程是SQL语句和控制语句的预编译集合，以一个名字存储并作为一个单元处理)  
+
+  存储过程的优点:
+     1. 增强 SQL语句的功能和灵活性
+     2. 执行速度快
+     3. 减少网络流量
+
+   CREATE
+         [DEFINER = {user|CURRENT_USER}]
+         PROCEDURE sp_name([proc_parameter[,...]])
+         [characteristic...] routine_body
+   
+      解释:
+     proc_parameter:
+        [ IN | OUT | INOUT ] param_name type
+    (IN指定的是输入参数、OUT指定的是输出参数、INOUT指定的是输入输出参数)
+
+     characteristic:    
+        comment:   注释
+        contains sql:  包含sql语句，但不包含读或写数据的语句(即crud)
+        no sql: 不包含sql语句
+        reads sql data: 包含读数据的语句(即select)
+        modifies sql data: 包含写数据的语句
+        sql security {definer|invoker} 指明谁有权限来执行
+
+    routine_body: (过程体)
+        和函数类似,如果包含多局crud要用begin ... end 包围.
+
+
+    最简单的示例:
+        create procedure sp1()
+         select version();
+       
+        调用 call sp1();
+             call sp1;
+
+----> 调用存储过程
+        1. call sp_name([parameter[,...]])
+        2. call sp_name[()]  
+
+
+     实例2:
+         delimiter //
+         create procedure removeUserById(IN id int unsigned)
+         begin
+             delete from users where id = id;
+         end//
+         delimiter ;
+         call removeUserById(3);   //实际上上面那种写法 id=id，总是TRUE，也就是说数据会被删除
+
+
+修改存储过程 (注意存储体是不能修改的,只能先删除后重建原来的存储过程)
+    alter procedure sp_name [characteristic ... ]
+         comment 'string'
+      |{contains sql|no sql|reads sql data| modifies sql data}
+      | sql security {definer|invoker}
+
+删除存储过程
+     drop procedure [if exists] sp_name
+ 
+     示例:  drop procedure removeUserById;
+
+重新修改一下:
+
+         delimiter //
+         create procedure removeUserById(IN p_id int unsigned)
+         begin
+             delete from users where id = p_id;
+         end//
+         delimiter ;
+         call removeUserById(3);
+    (这样功能就正常了)
+   
+   
+   示例:  创建带有IN 和 OUT 类型参数的存储过程
+         delimiter //
+         create procedure removeUserAndReturnUserNums(IN p_id in unsigned,OUT userNums int unsigned)
+           begin
+               delete from users where id = p_id;
+               select count(*) from users into userNums;
+           end//
+         delimiter //
+         call removeUserAndReturnUserNums(6,@nums);    注意这里@nums为变量--当前客户机的用户变量
+         select @nums;
+
+    更复杂的示例:(根据年龄删除用户、返回删除的用户以及剩余的用户数)
+       select row_count();  //返回操作受影响的行数，如果操作无影响则返回-1
+
+      创建存储过程如下:
+           delimiter //
+           create procedure ps_1(IN p_age smallint unsigned,OUT deleteUsers smallint unsigned,OUT userCount smallint unsigned)
+           begin
+               delete from users where age = p_age;
+               select row_count() into deleteUsers;
+               select count(id) from users into users into userCount;
+           end//
+           delimiter ;
+           call ps_1(18,@a,@b);
+           select @a,@b;
+
+存储过程与自定义函数的区别
+1. 存储过程可以返回多个值,函数只能返回一个值
+2. 存储过程一般独立的来执行；而函数可以作为其他SQL语句的组成部分来出现.
+
+回顾一下:
+   * 存储过程是sql语句和控制语句的预编译集合，以一个名称存储并作为一个单元处理。
+   * 参数:   输入类型还是输出类型
+   * 创建语句  create ... procedure ...
+   * 多条语句请用 begin ... end

@@ -1,0 +1,71 @@
+数值运算符和函数
+  CEIL();    //进一取整(向上取整)
+  FLOOR();   // 舍一取整(向下取整)
+
+  DIV();     //整数除法
+
+  MOD();      //取模（整数、小数均可）  select 5 mod 3; select 5.3 mode 3;
+  POWER();    //幂运算   select power(3,3);
+  ROUND();    //四舍五入  select round(3.652,2);  //保留两位小数
+  TRUNCATE();  //数字截取  select truncate(125.89,1);   //保留小数后1位
+                           select truncate(125.89,-1);   //-1表示把小数点前面的一位整个都去掉 120
+
+比较运算符和函数(在mysql中1表示true)
+[not] between ... and ...     [不]在范围之内
+[not] in()                  [不]在列出范围之内
+IS [not]  null             [不]为空
+
+select 14 between 1 and 22;  //1
+select null is null;  //1
+select '' is null; //0
+select 0 is null; //0
+
+
+
+
+日期时间函数
+now();           当前日期和时间
+curdate();        当前日期
+curtime();        当前时间
+date_add();       日期变化
+datediff();       日期差值
+date_format();    日期格式化
+
+示例:
+    select date_add('2014-9-2',interval 265 day);
+    select date_add('2014-3-12',interval -365day);
+    select date_add('2014-9-12',interval 3 week);
+
+    select datediff('2013-3-12','2014-9-12');
+
+    select date_format('2014-3-2','%m%d%y');
+
+
+
+信息函数
+     connection_id();     连接ID
+     datebase();          当前数据库
+     last_insert_id();    最后插入记录的ID号
+     user();              当前用户
+     version();           版本信息
+  示例:
+      select last_insert_id();    
+        注意: last_insert_id()所查的表必须存在一个自增字段(该字段可以不叫id)
+              一次性插入多条记录的时候，last_insert_id()得到的只能是第一条数据的值
+
+
+
+聚合函数（它只有一个返回值)
+avg()    平均值
+count()   计数
+max()     最大值
+min()     最小值
+sum()      求和
+
+
+加密函数
+MD5();
+PASSWORD();    //用于登录mysql的密码
+
+示例:set password=password('dimiter');  //这样的话密码就被修改了
+

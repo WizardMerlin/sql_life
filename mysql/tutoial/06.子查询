@@ -1,0 +1,176 @@
+子查询:
+
+如果你在客户端要插入中文数据，那么，你就需要将客户端使用的编码设置为中文字符集，最好设置为gbk
+set names gbk;   //该条语句并不改变数据库存储时采用的字符集编码
+
+---创建数据表
+   create table if not exists tdb_goods(
+      goods_id smallint unsigned primary key auto_increment,
+      goods_name varchar(150) not null,
+      goods_cate varchar(40) not null,
+      brand_name varchar(40) not null,
+      goods_price decimal(15,3) unsigned not null default 0,
+      is_show boolean not null default 1,
+      is_saleoff boolean not null default 0
+     );
+
+
+-- 写入记录
+
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('R510VC 15.6
+英寸笔记本','笔记本','华硕','3399',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('Y400N 14.0英
+寸笔记本电脑','笔记本','联想','4899',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('G150TH 15.6
+英寸游戏本','游戏本','雷神','8499',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('X550CC 15.6
+英寸笔记本','笔记本','华硕','2799',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('X240(20ALA0
+EYCD) 12.5英寸超极本','超级本','联想','4999',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('U330P 13.3英
+寸超极本','超级本','联想','4299',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('SVP13226SC
+B 13.3英寸触控超极本','超级本','索尼','7999',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('iPad mini M
+D531CH/A 7.9英寸平板电脑','平板电脑','苹果','1998',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('iPad Air MD
+788CH/A 9.7英寸平板电脑 （ 16G WiFi版） ','平板电脑','苹果','3388',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES(' iPad mini M
+E279CH/A 配备 Retina 显示屏 7.9英寸平板电脑 （ 16G WiFi版） ','平板电脑','苹果','2788',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('IdeaCentre C
+340 20英寸一体电脑 ','台式机','联想','3499',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('Vostro 3800-
+R1206 台式电脑','台式机','戴尔','2899',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('iMac ME086
+CH/A 21.5英寸一体电脑','台式机','苹果','9188',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('AT7-7414LP
+台式电脑 （ i5-3450四核 4G 500G 2G独显 DVD 键鼠 Linux ） ','台式机','宏碁','3699',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('Z220SFF F4F0
+6PA工作站','服务器/工作站','惠普','4288',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('PowerEdge T
+110 II服务器','服务器/工作站','戴尔','5388',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('Mac Pro MD
+878CH/A 专业级台式电脑','服务器/工作站','苹果','28888',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES(' HMZ-T3W
+头戴显示设备','笔记本配件','索尼','6999',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('商务双肩背包'
+,'笔记本配件','索尼','99',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('X3250 M4机
+架式服务器 2583i14','服务器/工作站','IBM','6888',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('玄龙精英版 笔
+记本散热器','笔记本配件','九州风神','',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES(' HMZ-T3W
+头戴显示设备','笔记本配件','索尼','6999',DEFAULT,DEFAULT);
+INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleoff) VALUES('商务双肩背包'
+,'笔记本配件','索尼','99',DEFAULT,DEFAULT);
+
+可以查看一下数据 select * from tdb_goods \G;
+
+
+子查询:（Subquery 即出现在其他SQL语句中的select语句）
+例如:
+    select * from t1 where col1 = (select col2 from t2);
+    其中select * from t1, 称之为outer query; select col2 from t2,称为Subquery
+1. 子查询指嵌套在查询内部，且必须始终出现在圆括号内。
+2. 查询可以包含多个关键字或者条件: distinct、group by、order by、limit、函数等.
+3. 子查询可以返回标量、一行、一列或者子查询
+
+第一类: 使用比较运算符的子查询 =、>、<、>=、<=、!=(不等于也可以写成<>)、
+例如:
+   (查询价格大于平均价格的商品)
+   select goods_id,goods_price,goods_name from tdb_goods where goods_price >=
+          (select round(avg(goods_price),2) from tdb_goods)
+   
+   //下面这样查询就会出错了----Subquery returns more than 1 row
+   select goods_id,goods_name,goods_price from tdb_goods where goods_price >=
+           (select goods_price from tdb_goods where goods_cate='超极本');
+
+   用关键字 ANY、SOME、ALL 修饰的比较运算符
+   
+   表格如下: (有些情况下，三个关键字可以互换，所以列出下表)
+
+   运算符&关键字       ANY         SOME         ALL
+      >、 >=         最小值        最小值      最大值
+      <、 <=         最大值        最大值      最小值
+        =            任意值        任意值    
+       !=                                      任意值
+   上面那个就可以写成: (>=any() 即存在即可)
+   select goods_id,goods_name,goods_price from tdb_goods where goods_price >=
+                      any (select goods_price from tdb_goods where goods_cate='超极本');
+   如果用=any()那么就会查出来，所有的超极本
+
+第二类  IN 和 NOT IN
+      IN 相当于 =ANY()
+      NOT IN 相当于 !=ALL()
+    注意: IN 是全表查询，所以效率比较低
+
+ 
+第三类  [NOT] EXISTS
+      如果子查询返回任何行，EXISTS将返回TRUE;否则为FALSE
+
+      
+---
+
+连接查询（需要利用上面的那个 tdb_goods那个表）
+    create table if not exists tdb_goods_cates(
+          cate_id smallint unsigned primary key auto_increment,
+          cate_name varchar(40) not null
+             );
+    插入数据:
+    insert into tdb_goods_cates(cate_name) select goods_cate from tdb_goods group by goods_cate;
+
+    这么做问题就出现了,tdb_goods这张表，并没有引入tdb_goods_cates的cate_id,(它引入的是name)也就是说必须依照tdb_goods_cates更新tdb_goods表
+
+----> 多表更新
+     update table_references
+       set col_name1={expr|default}[,col_name2={expr|default}]...[where where_condition]
+    上面的 table_references指:
+       table_reference {[inner|cross] join | {left|right} [outer] join} table_reference on condition_expr
+    其中 table_reference 可以使 table_name 也可以是 table_alias
+     
+  例如:
+      update tdb_goods INNER JOIN tdb_goods_cates
+          ON tdb_goods.goods_cate = tdb_goods_cates.cate_name
+         SET tdb_goods.goods_cate = tdb_goods_cates.cate_id;
+    (这么一来 tdb_goods里面的goods_cate字段就是cate数字，而不是名字了)
+ 
+     改进:(起一个别名更好)
+      update tdb_goods as t1 inner join tdb_goods_cates as t2
+          on t1.goods_cate = t2.cate_name
+      set t1.goods_cate = t2.cate_id;
+   
+   (当然一开始建表的时候就想好这些事情就不会有这些麻烦了)
+
+
+------------> create ... select
+
+  创建数据表，同时将查询结果写入到数据表中
+   create table [if not exists] tb_name [(create_definition,...)] select_statement
+ 
+  例如:  select brand_name from tdb_goods gorup by brand_name;   //在建立新表tdb_goods_brands的时候，就把这些数据写进去
+     
+    示例:  create table if not exists tdb_goods_brands(
+               brand_id smallint unsigned primary key auto_increment,
+               brand_name varchar(40) not null
+                ) select brand_name from tdb_goods group by brand_name;
+       然后在多表更新,让tdb_goods 参照 tdb_goods_brands
+         update tdb_goods inner join tdb_goods_brands
+             on tdb_goods.brand_name = tdb_goods_brands.brand_name
+            set tdb_goods.brand_name = tdb_goods_brands.brand_id;
+
+      将tdb_goods中的goods_cate 修改为 cate_id; 将brand_name 修改为 brand_id;
+     修改:
+       alter table tdb_goods
+          change goods_cate cate_id smallint unsigned not null,
+          change brand_name brand_id smallint unsigned not null;
+
+    (需要让tdb_goods引用另外两个表的键么？ 不需要这样从代码上建立硬连接)
+
+
+  插入一些新数据:
+    INSERT tdb_goods_cates(cate_name) VALUES('路由器'),('交换机'),('网卡');
+    INSERT tdb_goods_brands(brand_name) VALUES('海尔'),('清华同方'),('神舟');
+    INSERT tdb_goods(goods_name,cate_id,brand_id,goods_price) VALUES(' LaserJet Pro P1606dn 黑白激光打印机','12','4','1849');
+   
+   (新增的数据是 cate_id=12, brand_id=4） （ 查询tdb_goods_cates表， 发现根本不存在cate_id=12的项）
+   (之所以能插入， 是因为没有物理外键)
