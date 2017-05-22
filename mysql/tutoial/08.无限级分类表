@@ -1,16 +1,26 @@
-无限级分类表的设计(就是每条记录都保留上级的id)
- 
+无限级分类表的设计
+
+(就是每条记录都保留上级的id, 这样分类就可以由多个分类表来设计-----典型的关于连接的应用
+
+
+
+例如:
+	研发中心 --> 研发部门 --> 研发科室 --> 研发小组
+
+
    前面提到的 select * from tdb_goods_cates 中的分类实在是太少了，一旦出现二级目录就会变得很难办。
-   所以需要调整表结构:
+
+   所以需要调整表结构:(一张表就代表了所有的分类)
    
    //无限分类数据表的的设计  (默认父类为0)
    create table tdb_goods_types(
       type_id smallint unsigned primary key auto_increment,
       type_name varchar(20) not null,
       parent_id smallint unsigned not null default 0
-       );
+   );
    
-    插入数据:
+    插入数据(数据准备)
+  
     INSERT tdb_goods_types(type_name,parent_id) VALUES('家用电器',DEFAULT);
     INSERT tdb_goods_types(type_name,parent_id) VALUES('电脑、 办公',DEFAULT);
     INSERT tdb_goods_types(type_name,parent_id) VALUES('大家电',1);
@@ -29,34 +39,38 @@
    
     如何在这样一张表里查询所有分类及其父类的名字(不是编号)(不是单独分开查所有分类，是一起查)
     (尝试用左连接) 保留左表，去检索右表
---------------------------------------------------------------
+    ---------------------------------------------------------------
+
     select s.type_id,s.type_name,p.type_name as parent_name
        from
     tdb_goods_types as s
        left join
     tdb_goods_types as p
     on s.parent_id = p.type_id;
-------------------------------------
+    ---------------------------------------------------------------
 
-如果要查询所有分类的子类,还用左连接的话，（1个父类可能有多个子类,左表的type_id可能被多个右表的parent_id引用）
------------------------------
+    如果要查询所有分类的子类,还用左连接的话，（1个父类可能有多个子类,左表的type_id可能被多个右表的parent_id引用）
+    -----------------------------------------------------
     select s.type_id,s.type_name,p.type_name as child_name
        from
      tdb_goods_types as s
        left join
      tdb_goods_types as p
        on s.type_id = p.parent_id;
-(分析方法和原来相同，把左表保留了，右表一个一个地检索符合on_condition的)
+    (分析方法和原来相同，把左表保留了，右表一个一个地检索符合on_condition的)
 
-查询每个类别下面子类的个数:
-----------------------------------------------------------
-   select s.type_id,s.type_name,count(p.type_name) as nums
+    
+    查询每个类别下面子类的个数:
+    ----------------------------------------------------------
+    select s.type_id,s.type_name,count(p.type_name) as nums
        from
     tdb_goods_types as s
        left join
     tdb_goods_types as p
     on s.type_id = p.parent_id group by s.type_id;
- 注意: 这里用了group by,如果这里不用group by的话，会如何？
+    
+ 注意:
+  这里用了group by,如果这里不用group by的话，会如何？
   group by的作用是通过一定的规则将一个数据集划分成若干个小的区域，然后针对若干个小区域进行数据处理.
   没有group by的话，它会把所有满足条件的子类最后再做做一次集中count
 -------------------------------------------------------------------
