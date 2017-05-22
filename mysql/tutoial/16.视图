@@ -1,0 +1,36 @@
+视图(View)
+
+一般结合子查询, 使得查询变得简单(相当于包装查询)
+(同时限制数据的访问, 相当于加了一层逻辑层----不同用户看到的字段不一样)
+
+例如:
+
+create view view_name 
+as select id, name, salary from users
+where id = 10;
+
+
+下次查询的时候, 直接使用 select * from view_name;即可.
+
+
+使用describe命令可以查看视图.
+desc view_name;
+
+修改视图:(由于本身并不是物理表, 所以一般不建议更新视图)
+一般建议直接删除,然后重新建立.
+drop view view_name;
+
+(删除视图并不会真正删除数据)
+
+
+----------------------------
+总结, 视图一般会使得查询变得简单, 通常都会在子查询中加上给别名,例如
+
+create view view_name 
+as select id as 编号, name as 姓名, salary as 薪水 from	users where id = 10;
+
+
+并且一个项目中视图的数量可能超过表的数量, 因为可能会有很多查询, 具体业务也不同.
+
+哦,视图不能添加索引.
+---------------------------

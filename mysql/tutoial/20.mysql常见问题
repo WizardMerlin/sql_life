@@ -1,0 +1,19 @@
+1. 如果安装后MyISAM是默认引擎怎么搞？
+  改成InnoDB的话，需要改配置文件的两个地方
+    # The default storage engine that will be used when create new tables when
+    sdefault-storage-engine=InnoDB
+
+     #*** INNODB Specific options ***
+     # Use this option if you have a MySQL server with InnoDB support enabled
+     # but you do not plan to use it. This will save memory and disk space
+     # and speed up some things.
+     #skip-innodb
+
+2. 创建使用utf8字符集的数据库（指定的是字符集和校对规则）
+   create database if not exists 'test' character set 'utf8' collate 'utf8_general_ci';
+
+3. 取消外键约束
+   SET FOREIGN_KEY_CHECKS=0;在Mysql中取消外键约束。
+
+
+

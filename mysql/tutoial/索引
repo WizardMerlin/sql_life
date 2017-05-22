@@ -1,0 +1,58 @@
+索引
+
+
+1. 数据对象----加速对象的查询.
+2. 快速路径访问方法快速定位数据, 减少磁盘IO (类似于目录直接记录页数/物理路径)
+3. 与表独立存放(但是必须依附于表)--索引页保存索引数据和物理地址
+4. 数据库自动维护(表被删除时,索引自动被删除)
+5. 索引的类型有多种(普通索引, hash, B树等)
+
+
+自动在主键,唯一键上创建,由于外键通常参照主键,所以mysql中外键也自动创建索引.
+
+
+也可以手动创建索引:
+create index index_name on table_name(column[, column]...);
+
+
+你可以查询一下:
+
+show indexes from provices \G;
+*************************** 1. row ***************************
+        Table: provices
+   Non_unique: 0
+     Key_name: PRIMARY
+ Seq_in_index: 1
+  Column_name: id
+    Collation: A
+  Cardinality: 0
+     Sub_part: NULL
+       Packed: NULL
+         Null: 
+   Index_type: BTREE
+      Comment: 
+Index_comment: 
+1 row in set (0.00 sec)
+
+
+使用索引查询:
+在where子句中使用索引列, 此时数据库就会自动使用索引进行查询.
+比如说主键是有建立索引的, 那么使用主键时, 就自动使用了索引:
+
+select name from user where id = '0';
+
+
+
+技巧:
+在经常查询的字段上面建立索引(从而避免全表扫描), 因为数据库维护索引也需要开销.
+当出现多次insert, delete, update之后, 会出现索引碎片, 影响查询速度, 此时应该重新建立索引.
+
+重建索引:
+drop index index_name;
+然后重建:
+create index index_name on table_name(column);
+
+
+
+补充:
+查询优化的一种就是使用索引.
