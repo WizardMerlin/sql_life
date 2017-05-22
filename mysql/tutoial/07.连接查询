@@ -1,19 +1,74 @@
-连接:
-内,外,交叉,自连接
-(区分内外连接, 内连接比较多的情况是, 主外键建立关键的等值连接查询)
+连接(mysql对于不同种类连接形式的支持情况)
+(06里面, 刚才讲过多表更新，那个时候使用了内连接(等值连接))
 
-   (刚才讲过多表更新，那个时候使用了内连接)
-    mysql在select语句、多表更新、多表删除语句中都支持join操作
-    即:  table_reference
-             { [inner|cross] join |{left|right} [outer] join }
+
+先说一下传统SQL中的连接情况?
+
+1. 内连接---表的顺序不重要
+   包括“相等连接”和“自(然)连接”, 其中自然连接没有存才的意义(不指示连接列,on条件等)
+
+   等值连接
+   包含显示和隐示, 隐示依旧用逗号书写.
+   (一般看到tb1.id = tb2.id相关联的等式出现在ON或者where子句中,同时又涉及多个表,基本就是内连接了)
+
+
+2. 外连接---表的顺序重要
+   包括“左外连接”, "右外连接", "完整外部链接".
+
+   左外链接: left join/ left outer join 后面所接的视为左表。连接左边中的行，而不仅仅是匹配的行。如果左表的某行，右表没有匹配的行。
+   　　　　　则在相关的结果集中，右表所选列为空. (outer 关键字可以省略)
+   
+   右外连接: 类比左外链接.
+
+   完整外部链接: full outer join 返回左表和右表中所有的行；左表有而右表没有的，右表写空; 右表有而左表没有的，左表写空.
+   相当于左外链接和有外链接的合集,　但是去掉了重复的部分.
+   (注意不做交叉,　仅仅是把左右表中的行全部罗列在结果集合中)
+
+   全连接--mysql5.0不支持		
+
+3. 交叉连接---表的顺序重要
+   就是笛卡尔积: 左表中的每一行和右表中的每一行相结合.
+
+   包括显示和隐示,区别在于是否直接给出CROSS JOIN, 隐示的一般直接用逗号解决.
+   
+   隐示, 例如:
+   select tb1.id tb2.id from tb1, tb2 where tb1.id=0;
+
+   但是显示结果是一样的.
+   
+   个人觉得, 外链接不但返回符合的行，还返回不符合的行，这一点有点不好。
+   一般如果用的比较熟悉或者对于相关的数据库有深入的了解, 不用刻意区分连接类型或者种类.
+
+
+特别的,在使用on的同时,也可以使用where子句作为补充.(它俩并不冲突)
+但是写在where条件中还是on中结果一般是不同的，推荐使用on只处理连接条件,
+对于连接产生的中间表的限制单独写在where中,而不是全部写在on条件中.
+
+其他还有union join找出全连接和自连接(等值连接)的差异.
+
+多个表在进行连接的时候, 首先是前两个表连接结合形成中间表, 然后依次类推结合, 最终会形成一个中间表.
+
+
+-----------------------------------------------------------------------------------------------------------
+结合mysql
+  1.select语句
+  2.多表更新
+  3.多表删除语句中都支持join操作
+
+即: table_reference
+         { [inner|cross] join |{left|right} [outer] join }
          table_reference
          on conditional_expr
-    1. mysql中join/inner join/cross join都是等价的(当做内连接,取行乘积);left [outer] 左外连接，right [outer] join右外连接
-    2. 这里的table_reference一样是指 tb_name [as alias]或者 tb_subquery as alias ; tb_subquery可以使用在from子句中,作为子查询，但必须要赋予别名
-    3. 使用on来设置链接条件,也可以使用where来代替（通常使用where关键字进行结果集记录的过滤，而使用on来设置连接条件）
-   
 
----> 内连接(用的比较多的,仅仅显示符合条件的记录,相当于两个集合的交集)
+  1. mysql中join/inner join/cross join都是等价的();left [outer] 左外连接，right [outer] join右外连接
+  2. 这里的table_reference一样是指 tb_name [as alias]或者 tb_subquery as alias;
+                    tb_subquery可以使用在from子句中,作为子查询，但必须要赋予别名;
+  3. 使用on来设置链接条件,也可以使用where来代替(通常使用where关键字进行查询结果集记录的过滤，而使用on来设置连接条件)
+
+简单说, 原来写表名的地方, 现在可以写table <join_type> join 语句了; 由于内连接和cross join一致, 所以可以直接写inner join.
+
+---> 内连接(用的比较多的,仅仅显示符合条件的记录,相当于两个集合的交集,等值连接)
+
     示例:
       ----------------------------------------------------------
         select goods_id,goods_name,cate_name from tdb_goods
@@ -21,12 +76,13 @@
         tdb_goods_cates
           on tdb_goods.cate_id = tdb_goods_cates.cate_id;
       -----------------------------------------------------------
+
       稍微复杂点儿的: (只找符合条件的)
          select goods_id,goods_name,cate_name,brand_name from tdb_goods as g
                inner join tdb_goods_cates as c on g.cate_id = c.cate_id
                inner join tdb_goods_brands as b on g.brand_id = b.brand_id \G;
 
-cross join也可以替换成',', 直接当做多表查询(简单的乘积).----------------交叉连接用的比较少.
+    cross join也可以替换成',', 直接当做多表查询(简单的乘积).----------------交叉连接用的比较少.
 
        
 ---> 左外连接(左边全部保留;右边的只保留和左边交集的部分;左边有，但右表不和连接条件的，在记录上的“来自右表的字段”上写null)
@@ -50,17 +106,13 @@ cross join也可以替换成',', 直接当做多表查询(简单的乘积).-----
 
 理解一下外连接
     A left join B on join_condition
+
   1. 没有指定where字句的时候，左连接条件指定了如何去检索B表(A表确定保留在结果集中的)
-  2. 如果数据表A的某条记录符合where条件，但是在数据表B不存在符合连接条件的记录，那么将(在B中)生产一个“所有列”为空的额外B行。
+  2. 如果数据表A的某条记录符合on条件，但是在数据表B不存在符合连接条件的记录，那么将(在B中)生产一个“所有列”为空的额外B行。
 
 补充一点:
     如果在内连接查找的记录在连接数据表中不存在，在where子句中又有col_name IS NULL 这样的条件。那么如果定义该表的时候有定义 col_name not null,
     那么此次内连接查找一旦找到一条符合记录后停止查找更多行。
 
 
-全连接--mysql5.0不支持
 
-自连接(同一张表的两份, 同一张表进行左/右连接)----需要给表起不同的别名:
-SELECT c.name '类型', c2.name '父类型'
-FROM course c LEFT JOIN course c2
-ON c.id = c2.id;

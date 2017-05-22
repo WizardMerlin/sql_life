@@ -1,9 +1,15 @@
-子查询:
+子查询
 
-如果你在客户端要插入中文数据，那么，你就需要将客户端使用的编码设置为中文字符集，最好设置为gbk
-set names gbk;   //该条语句并不改变数据库存储时采用的字符集编码
+子查询:(Subquery 即出现在其他SQL语句中的select语句)
 
----创建数据表
+让客户端支持中文: set names gbk;   //该条语句并不改变数据库存储时采用的字符集编码
+如果你在客户端要插入中文数据，那么你就需要将客户端使用的编码设置为中文字符集，最好设置为gbk
+
+
+
+环境准备:
+
+---创建数据表(商品表)
    create table if not exists tdb_goods(
       goods_id smallint unsigned primary key auto_increment,
       goods_name varchar(150) not null,
@@ -12,7 +18,7 @@ set names gbk;   //该条语句并不改变数据库存储时采用的字符集�
       goods_price decimal(15,3) unsigned not null default 0,
       is_show boolean not null default 1,
       is_saleoff boolean not null default 0
-     );
+   );
 
 
 -- 写入记录
@@ -66,16 +72,20 @@ INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleof
 
 可以查看一下数据 select * from tdb_goods \G;
 
-
-子查询:（Subquery 即出现在其他SQL语句中的select语句）
-例如:
+利用子查询进行查询：　
+(subquery放在where子句中)
     select * from t1 where col1 = (select col2 from t2);
     其中select * from t1, 称之为outer query; select col2 from t2,称为Subquery
-1. 子查询指嵌套在查询内部，且必须始终出现在圆括号内。
-2. 查询可以包含多个关键字或者条件: distinct、group by、order by、limit、函数等.
-3. 子查询可以返回标量、一行、一列或者子查询
 
-第一类: 使用比较运算符的子查询 =、>、<、>=、<=、!=(不等于也可以写成<>)、
+    1. 子查询指嵌套在查询内部，且必须始终出现在圆括号内(因为后面有运算符)
+    2. 查询可以包含多个关键字或者条件: distinct、group by、order by、limit、函数等
+    3. 子查询可以返回标量、一行、一列或者子查询
+
+可能用到的符号:
+
+---
+第一类: 使用比较运算符的子查询 =、>、<、>=、<=、!=(不等于也可以写成<>)
+
 例如:
    (查询价格大于平均价格的商品)
    select goods_id,goods_price,goods_name from tdb_goods where goods_price >=
@@ -85,8 +95,8 @@ INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleof
    select goods_id,goods_name,goods_price from tdb_goods where goods_price >=
            (select goods_price from tdb_goods where goods_cate='超极本');
 
-   用关键字 ANY、SOME、ALL, OR 修饰的比较运算符 (也可以用between and)
-   (同时也可以使用小括号限制优先级别)
+   用关键字 ANY、SOME、ALL, OR 修饰的比较运算符(也可以用BETWEEN AND), 当然也可以使用小括号限制一下运算及优先级别.
+
    表格如下: (有些情况下，三个关键字可以互换，所以列出下表)
 
    运算符&关键字       ANY         SOME         ALL
@@ -94,99 +104,136 @@ INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleof
       <、 <=         最大值        最大值      最小值
         =            任意值        任意值    
        !=                                      任意值
+
    上面那个就可以写成: (>=any() 即存在即可)
+
    select goods_id,goods_name,goods_price from tdb_goods where goods_price >=
                       any (select goods_price from tdb_goods where goods_cate='超极本');
-   如果用=any()那么就会查出来，所有的超极本
+   如果用=any()那么就会查出来，所有的超极本(因为goods_price >= 最小值)
 
+---
 第二类  IN 和 NOT IN
-      IN 相当于 =ANY()
+      IN 相当于 =ANY(), 当然也可以制定一个范围.
       NOT IN 相当于 !=ALL()
+
     注意: IN 是全表查询，所以效率比较低
 
-    当然也可以为IN指定列表,例如: (NOT IN即不在该列表中)
+    为IN指定列表,例如: (NOT IN即不在该列表中)
     select id, name, sal from employees where sal IN (7000, 8000, 9000);
     
- 
-第三类  [NOT] EXISTS
-      如果子查询返回任何行，EXISTS将返回TRUE;否则为FALSE
 
+--- 
+第三类  [NOT] EXISTS
+      如果子查询返回任何行，EXISTS将返回TRUE; 否则为FALSE
+
+
+---
 第四类
 	模糊查询, 使用LIKE
 
 	'%'表示0或者多个字符, '_'表示一个字符
-	例如:
-	select name from users where name like '%_erlin%';
 
+	例如: select name from users where name like '%_erlin%';
+
+---
 第五类
 	IS NULL/IS NOT NULL  表示某一个字段没有设置值,例如
 	select name,age from users where age IS NULL;
 
 ---
 
-连接查询（需要利用上面的那个 tdb_goods那个表）
+
+
+利用子查询的结果做处理:
+
+数据准备如下:
+
     create table if not exists tdb_goods_cates(
           cate_id smallint unsigned primary key auto_increment,
           cate_name varchar(40) not null
-             );
-    插入数据: (后面可以使用括号)
-    insert into tdb_goods_cates(cate_name) select goods_cate from tdb_goods group by goods_cate;
+    );
 
-    这么做问题就出现了,tdb_goods这张表，并没有引入tdb_goods_cates的cate_id,(它引入的是name)也就是说必须依照tdb_goods_cates更新tdb_goods表
+    (还需要利用上面的那个tdb_goods那个表)
+
+
+
+----> 插入数据: (后面可以使用括号) (subquery的结果替代values部分)
+
+    insert into tdb_goods_cates(cate_name) select goods_cate from tdb_goods group by goods_cate;
+    这么做问题就出现了, tdb_goods这张表, 并没有引入tdb_goods_cates的cate_id,(它引入的是name)也就是说必须依照tdb_goods_cates更新tdb_goods表
+    (两个字段是对不上号的)
+
 
 ----> 多表更新
-     update table_references
+
+    update <table_name> [table_references]
        set col_name1={expr|default}[,col_name2={expr|default}]...[where where_condition]
-    上面的 table_references指:
+
+    上面的 table_references指:(这里利用到了多表连接查询结果)
        table_reference {[inner|cross] join | {left|right} [outer] join} table_reference on condition_expr
     其中 table_reference 可以使 table_name 也可以是 table_alias
      
-  例如:
+  例如:(内连接一般用于等值连接)
       update tdb_goods INNER JOIN tdb_goods_cates
           ON tdb_goods.goods_cate = tdb_goods_cates.cate_name
          SET tdb_goods.goods_cate = tdb_goods_cates.cate_id;
-    (这么一来 tdb_goods里面的goods_cate字段就是cate数字，而不是名字了)
+      (这么一来tdb_goods里面的goods_cate字段就是cate数字，而不是名字了)
  
-     改进:(起一个别名更好)
+    改进:(起一个别名更好)
       update tdb_goods as t1 inner join tdb_goods_cates as t2
           on t1.goods_cate = t2.cate_name
       set t1.goods_cate = t2.cate_id;
    
-   (当然一开始建表的时候就想好这些事情就不会有这些麻烦了)
+   (当然一开始建表的时候就想好这些事情(名字问题)就不会有这些麻烦了)
+
 
 
 ------------> create ... select
 
   创建数据表，同时将查询结果写入到数据表中
+
    create table [if not exists] tb_name [(create_definition,...)] select_statement
  
-  例如:  select brand_name from tdb_goods gorup by brand_name;   //在建立新表tdb_goods_brands的时候，就把这些数据写进去
-     
-    示例:  create table if not exists tdb_goods_brands(
+  例如: select brand_name from tdb_goods gorup by brand_name;
+  //在建立新表tdb_goods_brands的时候，就把这些数据写进去(如果subquery没有数据，可以直接借用其表结构)
+
+    示例: (新建一个商品牌子表)
+       create table if not exists tdb_goods_brands(
                brand_id smallint unsigned primary key auto_increment,
                brand_name varchar(40) not null
-                ) select brand_name from tdb_goods group by brand_name;
+       ) select brand_name from tdb_goods group by brand_name;
+
        然后在多表更新,让tdb_goods 参照 tdb_goods_brands
-         update tdb_goods inner join tdb_goods_brands
-             on tdb_goods.brand_name = tdb_goods_brands.brand_name
+
+       update tdb_goods inner join tdb_goods_brands
+            on tdb_goods.brand_name = tdb_goods_brands.brand_name
             set tdb_goods.brand_name = tdb_goods_brands.brand_id;
 
       将tdb_goods中的goods_cate 修改为 cate_id; 将brand_name 修改为 brand_id;
-     修改:
+
+     修改一下表结构, 让tdb_goods参照其他的表名字
        alter table tdb_goods
           change goods_cate cate_id smallint unsigned not null,
           change brand_name brand_id smallint unsigned not null;
 
-    (需要让tdb_goods引用另外两个表的键么？ 不需要这样从代码上建立硬连接)
+    (这样相当于让tdb_goods引用另外两个表的键, 但是不是外键(避免建立硬连接), 需要手动维护)
 
 
   插入一些新数据:
-    INSERT tdb_goods_cates(cate_name) VALUES('路由器'),('交换机'),('网卡');
+    INSERT tdb_goods_cates(cate_name) VALUES('路由器'),('交换机'),('网卡');  //这种连续插入方式, 貌似只有mysql才哟
     INSERT tdb_goods_brands(brand_name) VALUES('海尔'),('清华同方'),('神舟');
     INSERT tdb_goods(goods_name,cate_id,brand_id,goods_price) VALUES(' LaserJet Pro P1606dn 黑白激光打印机','12','4','1849');
    
-   (新增的数据是 cate_id=12, brand_id=4） （ 查询tdb_goods_cates表， 发现根本不存在cate_id=12的项）
-   (之所以能插入， 是因为没有物理外键)
+   (新增的数据是 cate_id=12, brand_id=4） （ 查询tdb_goods_cates表, 发现根本不存在cate_id=12的项）
+   (之所以能插入, 是因为没有物理外键)
 
 
-单行子查询, 返回多个结果/没有结果, 都是错的
+单行子查询, 返回多个结果/没有结果, 都是错的-----subquery没办法被利用
+
+
+总结:
+
+sub-query用在哪里？
+1. select 的 where 子句中
+2. update语句的values子句中.
+3. create　table的时候, 直接在后面插入数据.
