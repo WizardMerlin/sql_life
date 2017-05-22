@@ -50,7 +50,7 @@
           alter table user alter age set default 15;
           alter table user alter age drop default;
 
- 7. 删除主键约束(drop primary key)
+ 7. 删除主键约束(drop primary key)----自动增长的主键,先要重新定义去掉auto_increment
      alter table tb_name drop primary key
      示例: alter table user drop primary key;
 
@@ -75,7 +75,7 @@
          alter table user drop index pid;
          desc user;   //发现没有MUL了
 
- 10. 修改列定义(modify)
+ 10. 修改列定义(modify)---可以用来添加/删除非空约束, 添加auto_increment
        alter table tb_name MODIFY [column] col_name column_definition [first|after col_name]
        示例:
          alter table user modify age tinyint unsigned not null after name;
@@ -90,4 +90,8 @@
        方法1:  alter table tb_name rename [to|as] new_tb_name;
        方法2:  rename table tb_name to new_tb_name;(可以一次性修改多个表名)
      
-     示例: alter table user rename user1; 
+     示例: alter table user rename user1;
+
+ 补充:
+  修改列定义, 如果已存在表中的数据, 不支持修改后的定义, 那么修改是失败的.
+

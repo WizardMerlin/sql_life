@@ -85,8 +85,8 @@ INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleof
    select goods_id,goods_name,goods_price from tdb_goods where goods_price >=
            (select goods_price from tdb_goods where goods_cate='超极本');
 
-   用关键字 ANY、SOME、ALL 修饰的比较运算符
-   
+   用关键字 ANY、SOME、ALL, OR 修饰的比较运算符 (也可以用between and)
+   (同时也可以使用小括号限制优先级别)
    表格如下: (有些情况下，三个关键字可以互换，所以列出下表)
 
    运算符&关键字       ANY         SOME         ALL
@@ -104,11 +104,24 @@ INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleof
       NOT IN 相当于 !=ALL()
     注意: IN 是全表查询，所以效率比较低
 
+    当然也可以为IN指定列表,例如: (NOT IN即不在该列表中)
+    select id, name, sal from employees where sal IN (7000, 8000, 9000);
+    
  
 第三类  [NOT] EXISTS
       如果子查询返回任何行，EXISTS将返回TRUE;否则为FALSE
 
-      
+第四类
+	模糊查询, 使用LIKE
+
+	'%'表示0或者多个字符, '_'表示一个字符
+	例如:
+	select name from users where name like '%_erlin%';
+
+第五类
+	IS NULL/IS NOT NULL  表示某一个字段没有设置值,例如
+	select name,age from users where age IS NULL;
+
 ---
 
 连接查询（需要利用上面的那个 tdb_goods那个表）
@@ -116,7 +129,7 @@ INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleof
           cate_id smallint unsigned primary key auto_increment,
           cate_name varchar(40) not null
              );
-    插入数据:
+    插入数据: (后面可以使用括号)
     insert into tdb_goods_cates(cate_name) select goods_cate from tdb_goods group by goods_cate;
 
     这么做问题就出现了,tdb_goods这张表，并没有引入tdb_goods_cates的cate_id,(它引入的是name)也就是说必须依照tdb_goods_cates更新tdb_goods表
@@ -174,3 +187,6 @@ INSERT tdb_goods (goods_name,goods_cate,brand_name,goods_price,is_show,is_saleof
    
    (新增的数据是 cate_id=12, brand_id=4） （ 查询tdb_goods_cates表， 发现根本不存在cate_id=12的项）
    (之所以能插入， 是因为没有物理外键)
+
+
+单行子查询, 返回多个结果/没有结果, 都是错的

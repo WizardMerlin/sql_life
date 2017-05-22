@@ -1,4 +1,5 @@
 详细复习 CRUD
+(DML, 其中查询中比较重要的:条件查询, 排序, 聚合函数, 分组查询; 多表连接, 子连接)
 
 1. Insert
      方法一: insert [into] tb_name[(col_name,...)]{values|value}({expr|default}),(),....
@@ -12,7 +13,17 @@
       单表删除: delete from tb_name [where where_condition]
       多表删除: (比较麻烦--后面专门说)
       
-4. SELECT
+      删除表数据 (完全清空一个表)
+      truncate table table_name
+
+      注意区别: 
+      delete删除数据(指定行), 保留表结构, 理论上可以回滚(oracle数据先备份后删除)--但是mysql是auto_commit(意思删除是真的删除),所以不可以回滚.
+            (SET autocommit = 0; 则关闭mysql自动提交; 只针对当前的client端)
+      truncate完全清空所有数据(所以不可以回滚),保留表结构, 删除比较快(一次性删除).
+      drop删除数据和表结构, 删除速度快(直接抹去数据块).
+
+
+4. SELECT (重点)
       select select_expr[,select_expr...]
            [
               from tb_name
@@ -37,7 +48,7 @@
             );
      //这里只有sex可以为空
      //auto_increment的字段,可以插入null或者default，让其采用自增值
-     insert into users values(null,'john','123',23,1),(default,'jimmy','123',3*7,1);
+     insert into users values(null,'john','123', 23, 1),(default,'jimmy','123',3*7,1);
 
      
      //age字段默认是10,插入的时候也可以写default

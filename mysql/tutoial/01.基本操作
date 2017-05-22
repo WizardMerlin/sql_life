@@ -32,12 +32,17 @@
 5.  书写规范:
       数据库的关键字，函数大写；
       数据库名,表名,字段名小写。
+      
     演示命令:
      SELECT VERSION();
      SELECT NOW();
      SELECT USER();
      SHOW DATABASES;
-6.  其他命令演示
+
+
+     (数据库表/库名字: windows大小写不敏感, 但是linux/unix敏感)
+     
+6.  建库
 
     查看创建数据库时的语句:SHOW CREATE DATABASE mysql;    
     创建数据库时指定字符集:
@@ -48,8 +53,24 @@
            DROP DATABASE IF EXISTS merlin_test;
 
 	   
-   
 
+补充:
+1. 三个特殊字符 '#' '$' '_'
 
+2. sql语言介绍(后面的内容)
+
+	   
+DDL  (data definition language) 数据定义语言---mysql是自动提交的(而不是提交到缓存)
+(库,表,列/字段,索引)
+包括: create, drop, alter, rename, truncate
+
+DML: (data manipulation language) 数据操作语言
+其实就是增删改查 crud.
+
+DCL: (data control language)
+包括: grant, revoke
+
+Transaction Control:
+包括: commit, rellback, savepoint
 
    

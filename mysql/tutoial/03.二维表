@@ -1,9 +1,11 @@
-二维表相关
+二维表相关(包括约束)
 
-基本:
 SHOW DATABASES; 查看所有数据库
 SELECT DATABASE();  查看正在操作的数据库
 USE test;   使用test数据库
+
+
+
 
 建表:
    CREATE TABLE IF NOT EXISTS tb1(
@@ -32,19 +34,30 @@ USE test;   使用test数据库
 
 ---
 约束
+  1. 强制数据进行校验(而不是人为校验)
+  2. 保障数据库的完整性
+  3. 表中数据有相互依赖时,保证相关数据不被删除
+
 
 表级约束和列级约束:
-  1. 表级约束只能在列定以后声明; 
+  1. 表级约束只能在列定以后声明; (创建之后进行声明)
      列(字段)约束可以在定义时或者定义后声明
   2. 表级约束用的很少
   3. 所谓的check约束，基本不起作用
 
 
+其他分类: (5类完整性约束)
+  1. 非空约束 not null
+  2. 唯一约束 unique key 
+  3. 主键约束 primary key  (相当于非空,唯一)
+  4. 外键约束 foreign key  (减少冗余的一种手段, 一个字段参考/参照另外一张表的字段; 只能是另外一张表的主键或者unique key)
+  5. check检查 (比方说: age INT CHECK(age>18 AND age<60))-----mysql中不起作用
+
+  
 设置字段为null和不为null
    在建立表的时候, 在字段后面加上null或者not null就可以了，如果设置为字段为null,那么insert的时候就要插入null(或者自动插入null)
 
 
-   
 主键（primary key）
    每张表只能有一个主键(可以是联合主键),主键保证记录的唯一性,主键字段自动设置not null.(当然也可以显示写出来)
  
@@ -57,6 +70,9 @@ USE test;   使用test数据库
    SELECT * FROM tb2;
      
 
+
+
+   
 唯一约束(UNIQUE KEY)
   1. 也能保证记录的唯一性
   2. 可以为null
@@ -139,8 +155,13 @@ USE test;   使用test数据库
       default
       foreign key
 
+修改表结构的时候, 可以添加或者删除约束(后面说).
 
-关于存储引擎:
+
+
+----------
+
+关于存储引擎: (后面单独说)
     MySQL配置文件 my.ini文件
       default-storage-engine=INNODB
     或者 
@@ -148,3 +169,4 @@ USE test;   使用test数据库
 
 
 show engines;  可以查看当前mysql支持的存储引擎的信息
+show variables like 'table_type';
