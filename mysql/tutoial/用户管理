@@ -1,0 +1,130 @@
+用户管理(显示用户信息, 创建用户, 删除用户, 修改密码, 更新权限, 授权, 收回权限)
+
+注意: 下面的所有操作基于mysql 5.7版本
+
+
+下面的所有操纵, 记得刷新权限:
+flush privileges;
+
+
+0. 查看用户信息
+select host, user from mysql.user;
+
+
+
+1. 创建用户
+最好不要往mysql.user表里面插入数据, 而是采用create user的方法:
+create user 'merlin'@'localhost' identified by 'wizard';
+
+结果: Query OK, 0 rows affected (0.05 sec)
+
+注意: 单引号表示区分大小写.
+
+如果创建一个用户要在任何地方登陆, 那么请:
+create user 'merlin' identified by 'wizard';
+
+
+
+
+
+2. 给用户授权, 并刷新权限
+GRANT ALL PRIVILEGES ON *.* TO 'username'@'localhost' identified by 'passwd';
+如果想让用户在所有非本机地址登陆时都有权限, 那么'localhost'改写成'%'
+
+REVOKE ALL PRIVILEGES ON *.* FROM 'username'@'localhost';  #不需要任何身份识别, 注意 grant to, revoke from
+
+可以在重新授权, 只授予增删查改权限:
+GRANT SELECT,INSERT,UPDATE,DELETE ON *.* TO 'username'@'localhost' identified by 'passwd'
+
+
+
+3. 删除用户
+drop 'username'@'localhost';
+
+
+
+4. 修改密码
+一种方式是:
+授权的同时, 设置/修改密码.
+identified by 'passewd'  这一段, 就是设置密码.
+
+
+还有一种方式:
+ALTER USER <username> IDENTIFIED BY 'passwd';
+
+例如:
+mysql> alter user 'audiodev'@'localhost' identified by 'audio';
+alter user 'audiodev'@'localhost' identified by 'audio';
+Query OK, 0 rows affected (0.00 sec)
+
+#记得刷新一下权限:
+mysql> flush privileges;
+flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+(当然也可以设置ACOUNT LOCK/UNLOCK, PASSWORD EXPIRE INTERVAL 180 DAY等等其他选项)
+
+
+但是, 下面这种语法已经不提倡了(我在5.7上运行报错)
+set password for <username>=password("new_passwd");
+
+
+
+-----------------------------------------------------------------------------
+综合案例:
+
+下面我创建一个用户audiodev, 可以用来操作数据库audio, 并且只能本地登陆后操作.
+mysql> create user 'audiodev'@'localhost' identified by 'audiodev';
+create user 'audiodev'@'localhost' identified by 'audiodev';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> create database audio;
+create database audio;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> grant all privileges on audio.* to 'audiodev'@'localhost' identified by 'audiodev';
+grant all privileges on audio.* to 'audiodev'@'localhost' identified by 'audiodev';
+Query OK, 0 rows affected, 1 warning (0.02 sec)
+
+mysql> flush privileges;
+flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+
+#权限给太多了, 收回来一部分, 再重新授权吧.
+mysql> revoke all privileges on audio.* from 'audiodev'@'localhost';
+revoke all privileges on audio.* from 'audiodev'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> grant select,insert,update,delete on audio.* to 'audiodev'@'localhost' identified by 'audiodev';
+grant select,insert,update,delete on audio.* to 'audiodev'@'localhost' identified by 'audiodev';
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+mysql> flush privileges; #记得刷新权限
+flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+
+#还是修改一下密码吧
+mysql> alter user 'audiodev'@'localhost' identified by 'audio';
+alter user 'audiodev'@'localhost' identified by 'audio';
+Query OK, 0 rows affected (0.00 sec)
+
+
+mysql> flush privileges; #记得刷新一下权限:
+flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+
+
+然后重新登陆后, 发现权限确实小了:
+mysql> show databases;
+show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| audio              |
++--------------------+
+2 rows in set (0.00 sec)
+
